@@ -1,6 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using DG.Tweening;
 
 public class GodrayController : MonoBehaviour {
 
@@ -9,39 +8,29 @@ public class GodrayController : MonoBehaviour {
     [Range(0, 1)]
     public float MaxOpacity = 1;
 
-    public float OpacitySmoothing = 1;
+    public float SmoothingTime = 1;
 
-    [Space]
-    public float OffsetSpeed = 1f;
+    [Range(0, 5)]
+    public float GodrayOffset = 0;
 
     bool adding = true;
-    float godrayAlpha;
+
+    float godrayAlpha = 0;
     Material godrayMat;
 
     void Start()
     {
         godrayMat = GetComponent<SpriteRenderer>().material;
-    }
+        //Do movement
+        transform.DOMoveX(transform.position.x + GodrayOffset, SmoothingTime).SetEase(Ease.InOutQuad).SetLoops(-1, LoopType.Yoyo);
 
-    void Update()
-    {
-        if (adding)
-        {
-            godrayAlpha += OpacitySmoothing * Time.deltaTime;
-            transform.position += Vector3.left * OffsetSpeed * Time.deltaTime;
-            if (godrayAlpha >= MaxOpacity)
-                adding = false;
-        } else
-        {
-            godrayAlpha -= OpacitySmoothing * Time.deltaTime;
-            transform.position -= Vector3.left * OffsetSpeed * Time.deltaTime;
-            if (godrayAlpha <= MinOpacity)
-                adding = true;
-        }
+        //Do alpha
+        Color _godrayColorMin = godrayMat.GetColor("_TintColor");
+        _godrayColorMin.a = MinOpacity;
+        Color _godrayColorMax = godrayMat.GetColor("_TintColor");
+        _godrayColorMax.a = MaxOpacity;
 
-        
-        Color _godrayColor = godrayMat.color;
-        _godrayColor.a = godrayAlpha;
-        godrayMat.color = _godrayColor;
+        godrayMat.SetColor("_TintColor", _godrayColorMin);
+        godrayMat.DOColor(_godrayColorMax, "_TintColor", SmoothingTime/2f).SetEase(Ease.InOutQuad).SetLoops(-1, LoopType.Yoyo);
     }
 }
